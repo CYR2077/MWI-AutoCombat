@@ -1,29 +1,30 @@
 // ==UserScript==
 // @name         MWI-AutoCombat
 // @name:zh-CN   MWI自动战斗助手
-// @namespace    https://github.com/CYR2077
+// @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Auto-manage game queue(自动9战)
-// @author       CYR2077
+// @author       XIxixi297
 // @license      GPL3
 // @match        https://www.milkywayidle.com/*
+// @match        https://test.milkywayidle.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=milkywayidle.com
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @downloadURL  https://raw.github.com/CYR2077/MWI-AutoCombat/blob/main/MWI-AutoCombat.user.js
-// @updateURL    https://raw.github.com/CYR2077/MWI-AutoCombat/blob/main/MWI-AutoCombat.user.js
+// @downloadURL https://update.greasyfork.org/scripts/538205/MWI-AutoCombat.user.js
+// @updateURL https://update.greasyfork.org/scripts/538205/MWI-AutoCombat.meta.js
 // ==/UserScript==
 
 /**
  * 关于使用本插件可能存在的脚本行为说明：
- * 
+ *
  * 《游戏规则》
- * 
+ *
  * 4.机器人、脚本和扩展
- * 
+ *
  *  4.1禁止机器人: 请勿使用任何自动化程序代替你操作游戏。
  *  4.2脚本和扩展: 任何脚本或扩展程序都不得为玩家执行任何操作(向服务器发送任何请求)， 仅限使用于显示信息或改进用户界面 (例如: 显示战斗摘要、跟踪掉落、将按钮移动到不同位置)。
- * 
+ *
  * 请仔细阅读游戏规则条款后，再选择是否安装使用本插件，谢谢！
  */
 
@@ -260,7 +261,7 @@ onmessage = function (event) {\
     function saveSettings() {
         const planetSelect = document.getElementById('planet-select');
         const battleInput = document.getElementById('battle-count');
-        
+
         if (planetSelect && battleInput) {
             GM_setValue(STORAGE_KEYS.PLANET_INDEX, planetSelect.value);
             GM_setValue(STORAGE_KEYS.BATTLE_COUNT, battleInput.value);
@@ -271,7 +272,7 @@ onmessage = function (event) {\
     function loadSettings() {
         const savedPlanetIndex = GM_getValue(STORAGE_KEYS.PLANET_INDEX, '0');
         const savedBattleCount = GM_getValue(STORAGE_KEYS.BATTLE_COUNT, '9');
-        
+
         return {
             planetIndex: savedPlanetIndex,
             battleCount: savedBattleCount
@@ -283,11 +284,11 @@ onmessage = function (event) {\
         const settings = loadSettings();
         const planetSelect = document.getElementById('planet-select');
         const battleInput = document.getElementById('battle-count');
-        
+
         if (planetSelect && battleInput) {
             // Restore execution count
             battleInput.value = settings.battleCount;
-            
+
             // Restore planet selection (need to wait for options to load)
             if (planetSelect.options.length > 0) {
                 const planetIndex = parseInt(settings.planetIndex);
@@ -724,7 +725,7 @@ onmessage = function (event) {\
             document.getElementById('battle-count').value = '1';
             updateStatus(t.status.invalidCountSet, 'warning');
         }
-        
+
         // Save settings when starting
         saveSettings();
     }
@@ -738,19 +739,19 @@ onmessage = function (event) {\
             'warning': '#f39c12',
             'error': '#e74c3c'
         };
-        
+
         const newMessage = document.createElement('div');
         newMessage.style.color = colorMap[type];
         newMessage.textContent = `[${timestamp}] ${message}`;
-        
+
         // Add new message to bottom
         statusDiv.appendChild(newMessage);
-        
+
         // Limit message count, keep latest 30
         while (statusDiv.children.length > 30) {
             statusDiv.removeChild(statusDiv.firstChild);
         }
-        
+
         // Auto scroll to bottom to show latest message
         statusDiv.scrollTop = statusDiv.scrollHeight;
     }
