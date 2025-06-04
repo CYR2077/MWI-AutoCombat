@@ -2,7 +2,7 @@
 // @name         MWI-AutoCombat
 // @name:zh-CN   MWI自动战斗助手
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Auto-manage game queue(自动9战)
 // @author       XIxixi297
 // @license      GPL3
@@ -306,11 +306,11 @@ onmessage = function (event) {\
             position: fixed;
             top: 20px;
             right: 20px;
-            width: 300px;
+            width: 160px;
             background: rgba(44, 62, 80, 0.95);
             color: white;
             border-radius: 10px;
-            padding: 20px;
+            padding: 10px 15px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             z-index: 10000;
             font-family: Arial, sans-serif;
@@ -336,16 +336,17 @@ onmessage = function (event) {\
         title.style.cssText = `
             margin: 0;
             color: #3498db;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
+            border: none;
+            padding-bottom: 0;
             flex: 1;
             text-align: center;
             cursor: move;
+            font-size: 14px;
         `;
 
         const toggleButton = document.createElement('button');
         toggleButton.id = 'toggle-button';
-        toggleButton.textContent = '−';
+        toggleButton.textContent = '+';  // 修改为 + 号表示可展开
         toggleButton.style.cssText = `
             width: 25px;
             height: 25px;
@@ -374,6 +375,7 @@ onmessage = function (event) {\
 
         const content = document.createElement('div');
         content.id = 'panel-content';
+        content.style.display = 'none';
 
         const planetLabel = document.createElement('label');
         planetLabel.textContent = t.selectTask;
@@ -660,21 +662,22 @@ onmessage = function (event) {\
         const content = document.getElementById('panel-content');
         const title = document.getElementById('panel-title');
 
-        let isMinimized = false;
+        let isMinimized = true;  // 修改为 true，表示默认是折叠状态
 
         toggleButton.addEventListener('click', (e) => {
             e.stopPropagation();
 
             if (isMinimized) {
-                // Expand
+                // 展开
                 content.style.display = 'block';
                 container.style.width = '300px';
                 container.style.padding = '20px';
                 title.style.borderBottom = '2px solid #3498db';
                 title.style.paddingBottom = '10px';
+                title.style.fontSize = '';  // 恢复默认字体大小
                 toggleButton.textContent = '−';
             } else {
-                // Collapse
+                // 折叠
                 content.style.display = 'none';
                 container.style.width = '160px';
                 container.style.padding = '10px 15px';
