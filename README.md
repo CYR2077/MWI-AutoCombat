@@ -7,9 +7,8 @@
 
 * * *
 
-|     |     |
-|:---:|:---:|
-| ![English Screenshot](https://github.com/CYR2077/MWI-AutoCombat/blob/04ae6b6d9c86aaa89393b1369ecd447a5322cc2d/img/2.png?raw=true) | ![Chinese Screenshot](https://github.com/CYR2077/MWI-AutoCombat/blob/04ae6b6d9c86aaa89393b1369ecd447a5322cc2d/img/1.png?raw=true) |
+![English Screenshot](img/2.png)
+![Chinese Screenshot](img/1.png)
 
 ## About Script Behavior in This Plugin:
 
