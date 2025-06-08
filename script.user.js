@@ -2,10 +2,10 @@
 // @name         MWI-AutoCombat
 // @name:zh-CN   MWI自动战斗助手
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.2.1
 // @description  Auto-manage game queue(自动9战)
 // @author       XIxixi297
-// @license      GPL3
+// @license      CC-BY-NC-SA-4.0
 // @match        https://www.milkywayidle.com/*
 // @match        https://test.milkywayidle.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=milkywayidle.com
