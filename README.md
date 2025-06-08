@@ -1,24 +1,26 @@
 * * *
 
-# 📜 Plugin Usage Disclaimer / 插件使用说明
+# 📜 插件使用说明 / Plugin Usage Disclaimer
 
 
-本脚本旨在​​辅助​​玩家完成“9战”流程（关于9战的详细介绍，请参考：[NGA玩家社区：[攻略] 银河奶牛放置(Milky Way Idle) 9战流派简介 -在放置游戏寻求手操是否弄错了什么-](https://ngabbs.com/read.php?tid=42272940)）。通过​​优化用户界面(UI)和操作流程​​来实现“挂机”体验。
+本脚本旨在​​辅助​​玩家完成"9战"流程（关于9战的详细介绍，请参考：[NGA玩家社区：[攻略] 银河奶牛放置(Milky Way Idle) 9战流派简介 -在放置游戏寻求手操是否弄错了什么-](https://ngabbs.com/read.php?tid=42272940)）。通过​​优化用户界面(UI)和操作流程​​来实现"挂机"体验。
 
 * * *
 
-![English Screenshot](img/2.png)
 ![Chinese Screenshot](img/1.png)
+![English Screenshot](img/2.png)
 
-## About Script Behavior in This Plugin:
+---
 
-### <span style="color: #4CAF50;">Game Rules</span>
+## 🔧 安装说明 / Installation
 
-#### 4. **Bots, Scripts, and Extensions**
+### 安装地址:[https://greasyfork.org/zh-CN/scripts/538205-mwi-autocombat](https://greasyfork.org/zh-CN/scripts/538205-mwi-autocombat)
 
-**<span style="color: #FF9800;">4.1 No Botting:</span>** Do not use any automation that plays the game for you.
-
-**<span style="color: #FF9800;">4.2 Scripts and Extensions:</span>** Any scripts or extensions <span style="color: #F44336;">**must not take any actions for the player**</span> (send any requests to server). You are allowed to use them <span style="color: #2196F3;">*purely for information display purposes or UI improvements*</span> (ex: Display combat summary, track drops, move buttons to different location)
+1. 安装 <span style="color: #9C27B0;">**Tampermonkey**</span> 或类似的用户脚本管理器
+2. 安装此脚本
+###
+1. Install <span style="color: #9C27B0;">**Tampermonkey**</span> or similar userscript manager
+2. Install this scriptt
 
 ---
 
@@ -34,25 +36,18 @@
 
 ---
 
-## <span style="color: #FF5722;">⚠️ Important Notice / 重要提醒</span>
+## About Script Behavior in This Plugin:
 
-<span style="color: #00BCD4;">**Please read the game rules carefully before choosing to install and use this plugin. Thank you!**</span>
+### <span style="color: #4CAF50;">Game Rules</span>
 
-<span style="color: #00BCD4;">**请在仔细阅读游戏规则条款后，再选择是否安装使用本插件，谢谢！**</span>
+#### 4. **Bots, Scripts, and Extensions**
 
+**<span style="color: #FF9800;">4.1 No Botting:</span>** Do not use any automation that plays the game for you.
 
-## 🔧 Installation / 安装说明
-
-### 安装地址:[https://greasyfork.org/zh-CN/scripts/538205-mwi-autocombat](https://greasyfork.org/zh-CN/scripts/538205-mwi-autocombat)
-
-1. Install <span style="color: #9C27B0;">**Tampermonkey**</span> or similar userscript manager
-2. Install this scriptt
-###
-1. 安装 <span style="color: #9C27B0;">**Tampermonkey**</span> 或类似的用户脚本管理器
-2. 安装此脚本
+**<span style="color: #FF9800;">4.2 Scripts and Extensions:</span>** Any scripts or extensions <span style="color: #F44336;">**must not take any actions for the player**</span> (send any requests to server). You are allowed to use them <span style="color: #2196F3;">*purely for information display purposes or UI improvements*</span> (ex: Display combat summary, track drops, move buttons to different location)
 
 ---
 
-<span style="color: #607D8B;">*This script is intended to simplify operational procedures through an enhanced user interface. No warranty of complete safety is provided by the author. The user assumes any and all risks, liabilities, and responsibilities arising from its use.​*</span>
-
 <span style="color: #607D8B;">*本脚本旨在通过增强的用户界面简化操作流程。作者不提供任何形式的完全安全担保。使用者需自行承担由此产生的一切风险与责任。*</span>
+
+<span style="color: #607D8B;">*This script is intended to simplify operational procedures through an enhanced user interface. No warranty of complete safety is provided by the author. The user assumes any and all risks, liabilities, and responsibilities arising from its use.​*</span>
