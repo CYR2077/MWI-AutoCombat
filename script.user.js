@@ -2,7 +2,7 @@
 // @name         MWI-AutoCombat
 // @name:zh-CN   MWI自动战斗助手
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Auto-manage game queue(自动9战)
 // @author       XIxixi297
 // @license      GPL3
@@ -29,161 +29,118 @@
  */
 
 (function (workerScript) {
-	if (!/MSIE 10/i.test (navigator.userAgent)) {
-		try {
-			var blob = new Blob (["\
-var fakeIdToId = {};\
-onmessage = function (event) {\
-	var data = event.data,\
-		name = data.name,\
-		fakeId = data.fakeId,\
-		time;\
-	if(data.hasOwnProperty('time')) {\
-		time = data.time;\
-	}\
-	switch (name) {\
-		case 'setInterval':\
-			fakeIdToId[fakeId] = setInterval(function () {\
-				postMessage({fakeId: fakeId});\
-			}, time);\
-			break;\
-		case 'clearInterval':\
-			if (fakeIdToId.hasOwnProperty (fakeId)) {\
-				clearInterval(fakeIdToId[fakeId]);\
-				delete fakeIdToId[fakeId];\
-			}\
-			break;\
-		case 'setTimeout':\
-			fakeIdToId[fakeId] = setTimeout(function () {\
-				postMessage({fakeId: fakeId});\
-				if (fakeIdToId.hasOwnProperty (fakeId)) {\
-					delete fakeIdToId[fakeId];\
-				}\
-			}, time);\
-			break;\
-		case 'clearTimeout':\
-			if (fakeIdToId.hasOwnProperty (fakeId)) {\
-				clearTimeout(fakeIdToId[fakeId]);\
-				delete fakeIdToId[fakeId];\
-			}\
-			break;\
-	}\
-}\
-"]);
-			// Obtain a blob URL reference to our worker 'file'.
-			workerScript = window.URL.createObjectURL(blob);
-		} catch (error) {
-			/* Blob is not supported, use external script instead */
-		}
-	}
-	var worker,
-		fakeIdToCallback = {},
-		lastFakeId = 0,
-		maxFakeId = 0x7FFFFFFF, // 2 ^ 31 - 1, 31 bit, positive values of signed 32 bit integer
-		logPrefix = 'HackTimer.js by turuslan: ';
-	if (typeof (Worker) !== 'undefined') {
-		function getFakeId () {
-			do {
-				if (lastFakeId == maxFakeId) {
-					lastFakeId = 0;
-				} else {
-					lastFakeId ++;
-				}
-			} while (fakeIdToCallback.hasOwnProperty (lastFakeId));
-			return lastFakeId;
-		}
-		try {
-			worker = new Worker (workerScript);
-			window.setInterval = function (callback, time /* , parameters */) {
-				var fakeId = getFakeId ();
-				fakeIdToCallback[fakeId] = {
-					callback: callback,
-					parameters: Array.prototype.slice.call(arguments, 2)
-				};
-				worker.postMessage ({
-					name: 'setInterval',
-					fakeId: fakeId,
-					time: time
-				});
-				return fakeId;
-			};
-			window.clearInterval = function (fakeId) {
-				if (fakeIdToCallback.hasOwnProperty(fakeId)) {
-					delete fakeIdToCallback[fakeId];
-					worker.postMessage ({
-						name: 'clearInterval',
-						fakeId: fakeId
-					});
-				}
-			};
-			window.setTimeout = function (callback, time /* , parameters */) {
-				var fakeId = getFakeId ();
-				fakeIdToCallback[fakeId] = {
-					callback: callback,
-					parameters: Array.prototype.slice.call(arguments, 2),
-					isTimeout: true
-				};
-				worker.postMessage ({
-					name: 'setTimeout',
-					fakeId: fakeId,
-					time: time
-				});
-				return fakeId;
-			};
-			window.clearTimeout = function (fakeId) {
-				if (fakeIdToCallback.hasOwnProperty(fakeId)) {
-					delete fakeIdToCallback[fakeId];
-					worker.postMessage ({
-						name: 'clearTimeout',
-						fakeId: fakeId
-					});
-				}
-			};
-			worker.onmessage = function (event) {
-				var data = event.data,
-					fakeId = data.fakeId,
-					request,
-					parameters,
-					callback;
-				if (fakeIdToCallback.hasOwnProperty(fakeId)) {
-					request = fakeIdToCallback[fakeId];
-					callback = request.callback;
-					parameters = request.parameters;
-					if (request.hasOwnProperty ('isTimeout') && request.isTimeout) {
-						delete fakeIdToCallback[fakeId];
-					}
-				}
-				if (typeof (callback) === 'string') {
-					try {
-						callback = new Function (callback);
-					} catch (error) {
-						console.log (logPrefix + 'Error parsing callback code string: ', error);
-					}
-				}
-				if (typeof (callback) === 'function') {
-					callback.apply (window, parameters);
-				}
-			};
-			worker.onerror = function (event) {
-				console.log (event);
-			};
-		} catch (error) {
-			console.log (logPrefix + 'Initialisation failed');
-			console.error (error);
-		}
-	} else {
-		console.log (logPrefix + 'Initialisation failed - HTML5 Web Worker is not supported');
-	}
-}) ('HackTimerWorker.js');
+    if (!/MSIE 10/i.test(navigator.userAgent)) {
+        try {
+            var blob = new Blob(["var fakeIdToId = {};\nonmessage = function (event) {\n\tvar data = event.data,\n\t\tname = data.name,\n\t\tfakeId = data.fakeId,\n\t\ttime;\n\tif(data.hasOwnProperty('time')) {\n\t\ttime = data.time;\n\t}\n\tswitch (name) {\n\t\tcase 'setInterval':\n\t\t\tfakeIdToId[fakeId] = setInterval(function () {\n\t\t\t\tpostMessage({fakeId: fakeId});\n\t\t\t}, time);\n\t\t\tbreak;\n\t\tcase 'clearInterval':\n\t\t\tif (fakeIdToId.hasOwnProperty (fakeId)) {\n\t\t\t\tclearInterval(fakeIdToId[fakeId]);\n\t\t\t\tdelete fakeIdToId[fakeId];\n\t\t\t}\n\t\t\tbreak;\n\t\tcase 'setTimeout':\n\t\t\tfakeIdToId[fakeId] = setTimeout(function () {\n\t\t\t\tpostMessage({fakeId: fakeId});\n\t\t\t\tif (fakeIdToId.hasOwnProperty (fakeId)) {\n\t\t\t\t\tdelete fakeIdToId[fakeId];\n\t\t\t\t}\n\t\t\t}, time);\n\t\t\tbreak;\n\t\tcase 'clearTimeout':\n\t\t\tif (fakeIdToId.hasOwnProperty (fakeId)) {\n\t\t\t\tclearTimeout(fakeIdToId[fakeId]);\n\t\t\t\tdelete fakeIdToId[fakeId];\n\t\t\t}\n\t\t\tbreak;\n\t}\n}\n"]);
+            workerScript = window.URL.createObjectURL(blob);
+        } catch (error) {
+            /* Blob is not supported, use external script instead */
+        }
+    }
+    var worker,
+        fakeIdToCallback = {},
+        lastFakeId = 0,
+        maxFakeId = 0x7FFFFFFF;
+    if (typeof (Worker) !== 'undefined') {
+        function getFakeId() {
+            do {
+                if (lastFakeId == maxFakeId) {
+                    lastFakeId = 0;
+                } else {
+                    lastFakeId++;
+                }
+            } while (fakeIdToCallback.hasOwnProperty(lastFakeId));
+            return lastFakeId;
+        }
+        try {
+            worker = new Worker(workerScript);
+            window.setInterval = function (callback, time) {
+                var fakeId = getFakeId();
+                fakeIdToCallback[fakeId] = {
+                    callback: callback,
+                    parameters: Array.prototype.slice.call(arguments, 2)
+                };
+                worker.postMessage({
+                    name: 'setInterval',
+                    fakeId: fakeId,
+                    time: time
+                });
+                return fakeId;
+            };
+            window.clearInterval = function (fakeId) {
+                if (fakeIdToCallback.hasOwnProperty(fakeId)) {
+                    delete fakeIdToCallback[fakeId];
+                    worker.postMessage({
+                        name: 'clearInterval',
+                        fakeId: fakeId
+                    });
+                }
+            };
+            window.setTimeout = function (callback, time) {
+                var fakeId = getFakeId();
+                fakeIdToCallback[fakeId] = {
+                    callback: callback,
+                    parameters: Array.prototype.slice.call(arguments, 2),
+                    isTimeout: true
+                };
+                worker.postMessage({
+                    name: 'setTimeout',
+                    fakeId: fakeId,
+                    time: time
+                });
+                return fakeId;
+            };
+            window.clearTimeout = function (fakeId) {
+                if (fakeIdToCallback.hasOwnProperty(fakeId)) {
+                    delete fakeIdToCallback[fakeId];
+                    worker.postMessage({
+                        name: 'clearTimeout',
+                        fakeId: fakeId
+                    });
+                }
+            };
+            worker.onmessage = function (event) {
+                var data = event.data,
+                    fakeId = data.fakeId,
+                    request,
+                    parameters,
+                    callback;
+                if (fakeIdToCallback.hasOwnProperty(fakeId)) {
+                    request = fakeIdToCallback[fakeId];
+                    callback = request.callback;
+                    parameters = request.parameters;
+                    if (request.hasOwnProperty('isTimeout') && request.isTimeout) {
+                        delete fakeIdToCallback[fakeId];
+                    }
+                }
+                if (typeof (callback) === 'string') {
+                    try {
+                        callback = new Function(callback);
+                    } catch (error) {
+                        console.log('HackTimer.js by turuslan: Error parsing callback code string: ', error);
+                    }
+                }
+                if (typeof (callback) === 'function') {
+                    callback.apply(window, parameters);
+                }
+            };
+            worker.onerror = function (event) {
+                console.log(event);
+            };
+        } catch (error) {
+            console.log('HackTimer.js by turuslan: Initialisation failed');
+            console.error(error);
+        }
+    } else {
+        console.log('HackTimer.js by turuslan: Initialisation failed - HTML5 Web Worker is not supported');
+    }
+})('HackTimerWorker.js');
 
 (function () {
     'use strict';
 
-    // Language detection and internationalization
-    const isChineseUser = () => {
-        const lang = navigator.language.toLowerCase();
-        return lang.startsWith('zh');
-    };
+    // 语言检测
+    const isChineseUser = () => navigator.language.toLowerCase().startsWith('zh');
 
     const translations = {
         zh: {
@@ -238,6 +195,7 @@ onmessage = function (event) {\
 
     const t = translations[isChineseUser() ? 'zh' : 'en'];
 
+    // 全局状态
     let isRunning = false;
     let retryCount = 0;
     let currentConfig = {
@@ -247,289 +205,113 @@ onmessage = function (event) {\
         maxRetries: 30
     };
 
-    // Drag-related variables
-    let isDragging = false;
-    let dragOffset = { x: 0, y: 0 };
+    // 拖拽状态
+    let dragState = {
+        isDragging: false,
+        offset: { x: 0, y: 0 }
+    };
 
-    // Storage keys
+    // 存储键
     const STORAGE_KEYS = {
         PLANET_INDEX: 'automation_planet_index',
         BATTLE_COUNT: 'automation_battle_count'
     };
 
-    // Save settings to storage
-    function saveSettings() {
-        const planetSelect = document.getElementById('planet-select');
-        const battleInput = document.getElementById('battle-count');
+    // 工具函数
+    const utils = {
+        saveSettings() {
+            const planetSelect = document.getElementById('planet-select');
+            const battleInput = document.getElementById('battle-count');
+            if (planetSelect && battleInput) {
+                GM_setValue(STORAGE_KEYS.PLANET_INDEX, planetSelect.value);
+                GM_setValue(STORAGE_KEYS.BATTLE_COUNT, battleInput.value);
+            }
+        },
 
-        if (planetSelect && battleInput) {
-            GM_setValue(STORAGE_KEYS.PLANET_INDEX, planetSelect.value);
-            GM_setValue(STORAGE_KEYS.BATTLE_COUNT, battleInput.value);
-        }
-    }
+        loadSettings() {
+            return {
+                planetIndex: GM_getValue(STORAGE_KEYS.PLANET_INDEX, '0'),
+                battleCount: GM_getValue(STORAGE_KEYS.BATTLE_COUNT, '9')
+            };
+        },
 
-    // Load settings from storage
-    function loadSettings() {
-        const savedPlanetIndex = GM_getValue(STORAGE_KEYS.PLANET_INDEX, '0');
-        const savedBattleCount = GM_getValue(STORAGE_KEYS.BATTLE_COUNT, '9');
+        applySettings() {
+            const settings = this.loadSettings();
+            const planetSelect = document.getElementById('planet-select');
+            const battleInput = document.getElementById('battle-count');
 
-        return {
-            planetIndex: savedPlanetIndex,
-            battleCount: savedBattleCount
-        };
-    }
-
-    // Apply saved settings to UI
-    function applySettings() {
-        const settings = loadSettings();
-        const planetSelect = document.getElementById('planet-select');
-        const battleInput = document.getElementById('battle-count');
-
-        if (planetSelect && battleInput) {
-            // Restore execution count
-            battleInput.value = settings.battleCount;
-
-            // Restore planet selection (need to wait for options to load)
-            if (planetSelect.options.length > 0) {
-                const planetIndex = parseInt(settings.planetIndex);
-                if (planetIndex < planetSelect.options.length) {
-                    planetSelect.value = settings.planetIndex;
+            if (planetSelect && battleInput) {
+                battleInput.value = settings.battleCount;
+                if (planetSelect.options.length > 0) {
+                    const planetIndex = parseInt(settings.planetIndex);
+                    if (planetIndex < planetSelect.options.length) {
+                        planetSelect.value = settings.planetIndex;
+                    }
                 }
             }
-        }
-    }
+        },
 
+        // 统一的事件监听器，支持触摸事件
+        addPointerEvents(element, handlers) {
+            const events = {
+                start: ['mousedown', 'touchstart'],
+                move: ['mousemove', 'touchmove'],
+                end: ['mouseup', 'touchend', 'touchcancel']
+            };
+
+            Object.keys(handlers).forEach(type => {
+                events[type]?.forEach(eventName => {
+                    element.addEventListener(eventName, handlers[type], { passive: false });
+                });
+            });
+        },
+
+        // 获取指针位置（支持触摸和鼠标）
+        getPointerPosition(e) {
+            const touch = e.touches?.[0] || e.changedTouches?.[0];
+            return {
+                x: touch?.clientX || e.clientX,
+                y: touch?.clientY || e.clientY
+            };
+        },
+
+        setInputValue(el, value) {
+            const lastValue = el.value;
+            el.value = value;
+            const event = new Event('input', { bubbles: true });
+            const tracker = el._valueTracker;
+            if (tracker) {
+                tracker.setValue(lastValue);
+            }
+            el.dispatchEvent(event);
+        }
+    };
+
+    // UI创建
     function createUI() {
         const container = document.createElement('div');
         container.id = 'queue-automation-panel';
-        container.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 160px;
-            background: rgba(44, 62, 80, 0.95);
-            color: white;
-            border-radius: 10px;
-            padding: 10px 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 10000;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            backdrop-filter: blur(5px);
-            transition: opacity 0.3s ease;
+        container.innerHTML = `
+            <div id="title-bar">
+                <h3 id="panel-title">${t.title}</h3>
+                <button id="toggle-button">+</button>
+            </div>
+            <div id="panel-content" style="display: none;">
+                <label>${t.selectTask}</label>
+                <select id="planet-select"></select>
+                <label>${t.executionCount}</label>
+                <input id="battle-count" type="number" value="9" min="1" max="9999999999" step="1">
+                <div class="button-container">
+                    <button id="start-button">${t.startAuto}</button>
+                    <button id="stop-button" disabled>${t.stopAuto}</button>
+                </div>
+                <div id="status-display">${t.status.waitingToStart}</div>
+                <button id="refresh-button">${t.initializeTasks}</button>
+            </div>
         `;
 
-        const titleBar = document.createElement('div');
-        titleBar.id = 'title-bar';
-        titleBar.style.cssText = `
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            cursor: move;
-            user-select: none;
-        `;
-
-        const title = document.createElement('h3');
-        title.id = 'panel-title';
-        title.textContent = t.title;
-        title.style.cssText = `
-            margin: 0;
-            color: #3498db;
-            border: none;
-            padding-bottom: 0;
-            flex: 1;
-            text-align: center;
-            cursor: move;
-            font-size: 14px;
-        `;
-
-        const toggleButton = document.createElement('button');
-        toggleButton.id = 'toggle-button';
-        toggleButton.textContent = '+';  // 修改为 + 号表示可展开
-        toggleButton.style.cssText = `
-            width: 25px;
-            height: 25px;
-            border: none;
-            border-radius: 50%;
-            background: #e74c3c;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            line-height: 1;
-            margin-left: 10px;
-            flex-shrink: 0;
-            transition: filter 0.3s ease;
-        `;
-
-        toggleButton.addEventListener('mouseenter', () => {
-            toggleButton.style.filter = 'brightness(110%)';
-        });
-
-        toggleButton.addEventListener('mouseleave', () => {
-            toggleButton.style.filter = 'brightness(100%)';
-        });
-
-        titleBar.appendChild(title);
-        titleBar.appendChild(toggleButton);
-
-        const content = document.createElement('div');
-        content.id = 'panel-content';
-        content.style.display = 'none';
-
-        const planetLabel = document.createElement('label');
-        planetLabel.textContent = t.selectTask;
-        planetLabel.style.cssText = 'display: block; margin-bottom: 5px; font-weight: bold;';
-
-        const planetSelect = document.createElement('select');
-        planetSelect.id = 'planet-select';
-        planetSelect.style.cssText = `
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 5px;
-            background: rgba(52, 73, 94, 0.8);
-            color: white;
-            font-size: 14px;
-        `;
-
-        const battleLabel = document.createElement('label');
-        battleLabel.textContent = t.executionCount;
-        battleLabel.style.cssText = 'display: block; margin-bottom: 5px; font-weight: bold;';
-
-        const battleInput = document.createElement('input');
-        battleInput.id = 'battle-count';
-        battleInput.type = 'number';
-        battleInput.value = '9';
-        battleInput.min = '1';
-        battleInput.max = '9999999999';
-        battleInput.step = '1';
-        battleInput.style.cssText = `
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 5px;
-            background: rgba(52, 73, 94, 0.8);
-            color: white;
-            font-size: 14px;
-            box-sizing: border-box;
-        `;
-
-        // Prevent decimal input
-        battleInput.addEventListener('keydown', function(e) {
-            if (e.key === '.' || e.key === 'e' || e.key === '-') {
-                e.preventDefault();
-            }
-        });
-
-        const buttonContainer = document.createElement('div');
-        buttonContainer.style.cssText = 'display: flex; gap: 10px; margin-bottom: 15px;';
-
-        const startButton = document.createElement('button');
-        startButton.id = 'start-button';
-        startButton.textContent = t.startAuto;
-        startButton.style.cssText = `
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #27ae60;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: filter 0.3s ease, opacity 0.3s ease;
-        `;
-
-        const stopButton = document.createElement('button');
-        stopButton.id = 'stop-button';
-        stopButton.textContent = t.stopAuto;
-        stopButton.disabled = true;
-        stopButton.style.cssText = `
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #e74c3c;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: filter 0.3s ease, opacity 0.3s ease;
-            opacity: 0.5;
-        `;
-
-        // Add hover effects
-        [startButton, stopButton].forEach(button => {
-            button.addEventListener('mouseenter', () => {
-                if (!button.disabled) {
-                    button.style.filter = 'brightness(110%)';
-                }
-            });
-
-            button.addEventListener('mouseleave', () => {
-                button.style.filter = 'brightness(100%)';
-            });
-        });
-
-        const statusDiv = document.createElement('div');
-        statusDiv.id = 'status-display';
-        statusDiv.style.cssText = `
-            background: rgba(52, 73, 94, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            height: 120px;
-            font-size: 12px;
-            line-height: 1.4;
-            overflow-y: auto;
-        `;
-        statusDiv.innerHTML = `<div>${t.status.waitingToStart}</div>`;
-
-        const refreshButton = document.createElement('button');
-        refreshButton.textContent = t.initializeTasks;
-        refreshButton.style.cssText = `
-            width: 100%;
-            padding: 5px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #9b59b6;
-            color: white;
-            font-size: 12px;
-            cursor: pointer;
-            transition: filter 0.3s ease;
-        `;
-
-        refreshButton.addEventListener('mouseenter', () => {
-            refreshButton.style.filter = 'brightness(110%)';
-        });
-
-        refreshButton.addEventListener('mouseleave', () => {
-            refreshButton.style.filter = 'brightness(100%)';
-        });
-
-        refreshButton.addEventListener('click', ()=>{
-            document.getElementsByClassName("NavigationBar_nav__3uuUl")[13].click();
-            document.getElementsByClassName("MuiBadge-root TabsComponent_badge__1Du26 css-1rzb3uu")[0].click();
-            initializePlanetOptions();
-        });
-
-        content.appendChild(planetLabel);
-        content.appendChild(planetSelect);
-        content.appendChild(battleLabel);
-        content.appendChild(battleInput);
-        content.appendChild(buttonContainer);
-        buttonContainer.appendChild(startButton);
-        buttonContainer.appendChild(stopButton);
-        content.appendChild(statusDiv);
-        content.appendChild(refreshButton);
-
-        container.appendChild(titleBar);
-        container.appendChild(content);
-
+        // 应用样式
+        applyStyles(container);
         document.body.appendChild(container);
 
         initializePlanetOptions();
@@ -537,118 +319,258 @@ onmessage = function (event) {\
         setupDragFunctionality();
     }
 
+    function applyStyles(container) {
+        const styles = `
+            #queue-automation-panel {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 160px;
+                background: rgba(44, 62, 80, 0.95);
+                color: white;
+                border-radius: 10px;
+                padding: 10px 15px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+                backdrop-filter: blur(5px);
+                transition: opacity 0.3s ease;
+                touch-action: none;
+                user-select: none;
+            }
+            #title-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                cursor: move;
+            }
+            #panel-title {
+                margin: 0;
+                color: #3498db;
+                flex: 1;
+                text-align: center;
+                font-size: 14px;
+            }
+            #toggle-button {
+                width: 25px;
+                height: 25px;
+                border: none;
+                border-radius: 50%;
+                background: #e74c3c;
+                color: white;
+                cursor: pointer;
+                font-size: 16px;
+                line-height: 1;
+                margin-left: 10px;
+                flex-shrink: 0;
+            }
+            #panel-content label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            #panel-content select,
+            #panel-content input {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 15px;
+                border: none;
+                border-radius: 5px;
+                background: rgba(52, 73, 94, 0.8);
+                color: white;
+                font-size: 14px;
+                box-sizing: border-box;
+            }
+            .button-container {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            .button-container button {
+                flex: 1;
+                padding: 10px;
+                border: none;
+                border-radius: 5px;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: filter 0.3s ease, opacity 0.3s ease;
+            }
+            #start-button {
+                background: #27ae60;
+            }
+            #stop-button {
+                background: #e74c3c;
+                opacity: 0.5;
+            }
+            #stop-button:not(:disabled) {
+                opacity: 1;
+            }
+            #status-display {
+                background: rgba(52, 73, 94, 0.8);
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 10px;
+                height: 120px;
+                font-size: 12px;
+                line-height: 1.4;
+                overflow-y: auto;
+            }
+            #refresh-button {
+                width: 100%;
+                padding: 5px;
+                margin-top: 10px;
+                border: none;
+                border-radius: 5px;
+                background: #9b59b6;
+                color: white;
+                font-size: 12px;
+                cursor: pointer;
+            }
+            button:hover:not(:disabled) {
+                filter: brightness(110%);
+            }
+            .expanded {
+                width: 300px !important;
+                padding: 20px !important;
+            }
+            .expanded #panel-title {
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 10px;
+                font-size: inherit;
+            }
+        `;
+
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+    }
+
+    // 拖拽功能（支持触摸）
     function setupDragFunctionality() {
         const container = document.getElementById('queue-automation-panel');
         const titleBar = document.getElementById('title-bar');
-        const title = document.getElementById('panel-title');
 
-        // Add drag cursor for draggable areas
-        function addDragCursor(element) {
-            element.addEventListener('mouseenter', (e) => {
-                if (e.target.id !== 'toggle-button') {
-                    element.style.cursor = 'move';
+        utils.addPointerEvents(titleBar, {
+            start: (e) => {
+                if (e.target.id === 'toggle-button') return;
+                
+                e.preventDefault();
+                dragState.isDragging = true;
+                
+                const rect = container.getBoundingClientRect();
+                const pos = utils.getPointerPosition(e);
+                dragState.offset = {
+                    x: pos.x - rect.left,
+                    y: pos.y - rect.top
+                };
+
+                container.style.transition = 'none';
+                container.style.opacity = '0.8';
+            }
+        });
+
+        utils.addPointerEvents(document, {
+            move: (e) => {
+                if (!dragState.isDragging) return;
+                
+                e.preventDefault();
+                const pos = utils.getPointerPosition(e);
+                const x = pos.x - dragState.offset.x;
+                const y = pos.y - dragState.offset.y;
+
+                const maxX = window.innerWidth - container.offsetWidth;
+                const maxY = window.innerHeight - container.offsetHeight;
+
+                container.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+                container.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+                container.style.right = 'auto';
+            },
+            end: () => {
+                if (dragState.isDragging) {
+                    dragState.isDragging = false;
+                    container.style.transition = 'opacity 0.3s ease';
+                    container.style.opacity = '0.95';
                 }
-            });
-        }
-
-        addDragCursor(titleBar);
-        addDragCursor(title);
-
-        function startDrag(e) {
-            if (e.target.id === 'toggle-button') return;
-
-            isDragging = true;
-            const rect = container.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-
-            container.style.transition = 'none';
-            container.style.opacity = '0.8';
-
-            e.preventDefault();
-        }
-
-        titleBar.addEventListener('mousedown', startDrag);
-        title.addEventListener('mousedown', startDrag);
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-
-            const x = e.clientX - dragOffset.x;
-            const y = e.clientY - dragOffset.y;
-
-            const maxX = window.innerWidth - container.offsetWidth;
-            const maxY = window.innerHeight - container.offsetHeight;
-
-            container.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
-            container.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
-            container.style.right = 'auto';
-
-            e.preventDefault();
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                container.style.transition = 'opacity 0.3s ease';
-                container.style.opacity = '0.95';
             }
         });
 
+        // 鼠标悬停效果
         container.addEventListener('mouseenter', () => {
-            if (!isDragging) {
-                container.style.opacity = '1';
-            }
+            if (!dragState.isDragging) container.style.opacity = '1';
         });
 
         container.addEventListener('mouseleave', () => {
-            if (!isDragging) {
-                container.style.opacity = '0.95';
-            }
+            if (!dragState.isDragging) container.style.opacity = '0.95';
         });
     }
 
+    // 事件绑定
     function bindEvents() {
         const battleInput = document.getElementById('battle-count');
         const planetSelect = document.getElementById('planet-select');
+        const toggleButton = document.getElementById('toggle-button');
+        const container = document.getElementById('queue-automation-panel');
+        const content = document.getElementById('panel-content');
+        const title = document.getElementById('panel-title');
 
-        battleInput.addEventListener('input', function(e) {
-            let value = this.value;
-            value = value.replace(/[^\d]/g, '');
+        let isMinimized = true;
 
-            if (value === '') {
-                value = '1';
-            } else {
+        // 输入验证
+        battleInput.addEventListener('input', function() {
+            let value = this.value.replace(/[^\d]/g, '');
+            if (value === '') value = '1';
+            else {
                 const num = parseInt(value);
                 if (num < 1) value = '1';
                 if (num > 9999999999) value = '9999999999';
             }
-
             this.value = value;
-            // Save settings in real time
-            saveSettings();
+            utils.saveSettings();
         });
 
         battleInput.addEventListener('blur', function() {
-            if (this.value === '') {
-                this.value = '1';
+            if (this.value === '') this.value = '1';
+            utils.saveSettings();
+        });
+
+        battleInput.addEventListener('keydown', function(e) {
+            if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                e.preventDefault();
             }
-            saveSettings();
         });
 
-        // Listen for planet selection changes
-        planetSelect.addEventListener('change', function() {
-            saveSettings();
+        planetSelect.addEventListener('change', utils.saveSettings);
+
+        // 切换展开/折叠
+        toggleButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            if (isMinimized) {
+                content.style.display = 'block';
+                container.classList.add('expanded');
+                toggleButton.textContent = '−';
+            } else {
+                content.style.display = 'none';
+                container.classList.remove('expanded');
+                title.style.borderBottom = 'none';
+                title.style.paddingBottom = '0';
+                toggleButton.textContent = '+';
+            }
+            
+            isMinimized = !isMinimized;
         });
 
+        // 开始/停止按钮
         document.getElementById('start-button').addEventListener('click', () => {
-            const battleCount = parseInt(document.getElementById('battle-count').value);
-
+            const battleCount = parseInt(battleInput.value);
             if (!Number.isInteger(battleCount) || battleCount < 1 || battleCount > 9999999999) {
                 updateStatus(t.status.invalidNumber, 'error');
                 return;
             }
-
             if (!isRunning) {
                 updateConfig();
                 startAutomation();
@@ -657,40 +579,15 @@ onmessage = function (event) {\
 
         document.getElementById('stop-button').addEventListener('click', stopAutomation);
 
-        const toggleButton = document.getElementById('toggle-button');
-        const container = document.getElementById('queue-automation-panel');
-        const content = document.getElementById('panel-content');
-        const title = document.getElementById('panel-title');
-
-        let isMinimized = true;  // 修改为 true，表示默认是折叠状态
-
-        toggleButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-
-            if (isMinimized) {
-                // 展开
-                content.style.display = 'block';
-                container.style.width = '300px';
-                container.style.padding = '20px';
-                title.style.borderBottom = '2px solid #3498db';
-                title.style.paddingBottom = '10px';
-                title.style.fontSize = '';  // 恢复默认字体大小
-                toggleButton.textContent = '−';
-            } else {
-                // 折叠
-                content.style.display = 'none';
-                container.style.width = '160px';
-                container.style.padding = '10px 15px';
-                title.style.borderBottom = 'none';
-                title.style.paddingBottom = '0';
-                title.style.fontSize = '14px';
-                toggleButton.textContent = '+';
-            }
-
-            isMinimized = !isMinimized;
+        // 刷新按钮
+        document.getElementById('refresh-button').addEventListener('click', () => {
+            document.getElementsByClassName("NavigationBar_nav__3uuUl")[13].click();
+            document.getElementsByClassName("MuiBadge-root TabsComponent_badge__1Du26 css-1rzb3uu")[0].click();
+            initializePlanetOptions();
         });
     }
 
+    // 初始化任务选项
     function initializePlanetOptions() {
         const planetSelect = document.getElementById('planet-select');
         const planetElements = document.getElementsByClassName("SkillAction_name__2VPXa");
@@ -707,16 +604,14 @@ onmessage = function (event) {\
         for (let i = 0; i < planetElements.length; i++) {
             const option = document.createElement('option');
             option.value = i;
-            option.textContent = `${planetElements[i].textContent || 'Unknown'}`;
+            option.textContent = planetElements[i].textContent || 'Unknown';
             planetSelect.appendChild(option);
         }
 
-        // Apply saved settings after initialization
-        setTimeout(() => {
-            applySettings();
-        }, 100);
+        setTimeout(() => utils.applySettings(), 100);
     }
 
+    // 更新配置
     function updateConfig() {
         currentConfig.planetIndex = parseInt(document.getElementById('planet-select').value) || 0;
         const battleCount = parseInt(document.getElementById('battle-count').value);
@@ -729,14 +624,14 @@ onmessage = function (event) {\
             updateStatus(t.status.invalidCountSet, 'warning');
         }
 
-        // Save settings when starting
-        saveSettings();
+        utils.saveSettings();
     }
 
+    // 状态更新
     function updateStatus(message, type = 'info') {
         const statusDiv = document.getElementById('status-display');
         const timestamp = new Date().toLocaleTimeString();
-        const colorMap = {
+        const colors = {
             'info': '#3498db',
             'success': '#27ae60',
             'warning': '#f39c12',
@@ -744,55 +639,52 @@ onmessage = function (event) {\
         };
 
         const newMessage = document.createElement('div');
-        newMessage.style.color = colorMap[type];
+        newMessage.style.color = colors[type];
         newMessage.textContent = `[${timestamp}] ${message}`;
 
-        // Add new message to bottom
         statusDiv.appendChild(newMessage);
 
-        // Limit message count, keep latest 30
+        // 保持最新30条消息
         while (statusDiv.children.length > 30) {
             statusDiv.removeChild(statusDiv.firstChild);
         }
 
-        // Auto scroll to bottom to show latest message
         statusDiv.scrollTop = statusDiv.scrollHeight;
     }
 
+    // 自动化控制
     function startAutomation() {
         isRunning = true;
         retryCount = 0;
-        document.getElementById('start-button').disabled = true;
-        document.getElementById('start-button').style.opacity = '0.5';
-        document.getElementById('stop-button').disabled = false;
-        document.getElementById('stop-button').style.opacity = '1';
+        
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+        
+        startButton.disabled = true;
+        startButton.style.opacity = '0.5';
+        stopButton.disabled = false;
+        stopButton.style.opacity = '1';
 
-        const planetSelect = document.getElementById('planet-select').options[currentConfig.planetIndex].text;
-
-        updateStatus(`${t.status.startingAuto} - ${planetSelect}, ${currentConfig.battleCount}${t.status.times}`, 'success');
-        ExecuteQueueCheck();
+        const planetName = document.getElementById('planet-select').options[currentConfig.planetIndex].text;
+        updateStatus(`${t.status.startingAuto} - ${planetName}, ${currentConfig.battleCount}${t.status.times}`, 'success');
+        executeQueueCheck();
     }
 
     function stopAutomation() {
         isRunning = false;
-        document.getElementById('start-button').disabled = false;
-        document.getElementById('start-button').style.opacity = '1';
-        document.getElementById('stop-button').disabled = true;
-        document.getElementById('stop-button').style.opacity = '0.5';
+        
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+        
+        startButton.disabled = false;
+        startButton.style.opacity = '1';
+        stopButton.disabled = true;
+        stopButton.style.opacity = '0.5';
+        
         updateStatus(t.status.stopped, 'warning');
     }
 
-    function setInputValue(el, value) {
-        const lastValue = el.value;
-        el.value = value;
-        const event = new Event('input', { bubbles: true });
-        const tracker = el._valueTracker;
-        if (tracker) {
-            tracker.setValue(lastValue);
-        }
-        el.dispatchEvent(event);
-    }
-
+    // 队列操作
     function addTaskToQueue(i, j) {
         if (!isRunning) return;
 
@@ -809,7 +701,7 @@ onmessage = function (event) {\
                 const inputElement = document.getElementsByClassName("Input_input__2-t98")[0];
                 if (!inputElement) throw new Error("Input element not found");
 
-                setInputValue(inputElement, j);
+                utils.setInputValue(inputElement, j);
 
                 const addButton = document.getElementsByClassName("Button_button__1Fe9z Button_fullWidth__17pVU Button_large__yIDVZ")[0];
                 if (!addButton) throw new Error("Add button not found");
@@ -817,7 +709,6 @@ onmessage = function (event) {\
                 addButton.click();
                 updateStatus(t.status.addedToQueue, 'success');
                 retryCount = 0;
-
             }, 300);
 
         } catch (error) {
@@ -825,8 +716,44 @@ onmessage = function (event) {\
         }
     }
 
-    function isQueueExpanded() {
-        return !!document.getElementsByClassName("QueuedActions_label__1lTOW")[0];
+    function executeQueueCheck() {
+        if (!isRunning) return;
+        
+        try {
+            const queueElement = document.getElementsByClassName("QueuedActions_queuedActions__2xerL")[0];
+            if (!queueElement) {
+                updateStatus(t.status.queueNotFull, 'success');
+                addTaskToQueue(currentConfig.planetIndex, currentConfig.battleCount);
+                setTimeout(() => isRunning && executeQueueCheck(), 2000);
+                return;
+            }
+
+            const isExpanded = !!document.getElementsByClassName("QueuedActions_label__1lTOW")[0];
+            if (!isExpanded) {
+                queueElement.click();
+                return setTimeout(() => isRunning && executeQueueCheck(), 500);
+            }
+
+            const labelElement = document.getElementsByClassName("QueuedActions_label__1lTOW")[0];
+            const match = labelElement.textContent.match(/\((\d+)\/(\d+)\)/);
+            if (!match) throw new Error("Matching number format not found");
+
+            const [, numerator, denominator] = match.map(Number);
+            updateStatus(`${t.status.queueStatus}: ${numerator}/${denominator}`, 'info');
+
+            if (numerator < denominator) {
+                updateStatus(t.status.queueNotFull, 'success');
+                addTaskToQueue(currentConfig.planetIndex, currentConfig.battleCount);
+                setTimeout(() => isRunning && executeQueueCheck(), 2000);
+            } else {
+                updateStatus(t.status.queueFull, 'warning');
+                waitAndRetryQueueCheck();
+            }
+
+        } catch (error) {
+            updateStatus(`${t.status.executionError}: ${error.message}`, 'error');
+            retryCount < 5 ? waitAndRetryQueueCheck() : stopAutomation();
+        }
     }
 
     function waitAndRetryQueueCheck() {
@@ -838,7 +765,7 @@ onmessage = function (event) {\
             return;
         }
         setTimeout(() => {
-            if (isRunning) ExecuteQueueCheck();
+            if (isRunning) executeQueueCheck();
         }, currentConfig.retryDelay);
     }
 
