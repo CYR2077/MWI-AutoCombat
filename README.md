@@ -3,20 +3,13 @@
 # 📜 Plugin Usage Disclaimer / 插件使用说明
 
 
-觉得手动计算和购买各种材料很麻烦？  
-试试这个脚本吧！
-
-✨ ​**​精准计算​**​：  
-自动扫描并列出你当前缺少的所有材料数量。告别手动清点库存的日子！
-
-🛒 ​**​一键补货​**​：  
-检测到缺口后，只需点击一次按钮，脚本会自动从商店购买全部所需材料。再也不用反复进出商店、逐个查找补货了！
+本脚本旨在​​辅助​​玩家完成“9战”流程（关于9战的详细介绍，请参考：[NGA玩家社区：[攻略] 银河奶牛放置(Milky Way Idle) 9战流派简介 -在放置游戏寻求手操是否弄错了什么-](https://ngabbs.com/read.php?tid=42272940)）。通过​​优化用户界面(UI)和操作流程​​来实现“挂机”体验。
 
 * * *
 
 |     |     |
 |:---:|:---:|
-| ![English Screenshot](img/2.png) | ![Chinese Screenshot](img/1.png) |
+| ![English Screenshot](https://github.com/CYR2077/MWI-AutoCombat/blob/04ae6b6d9c86aaa89393b1369ecd447a5322cc2d/img/2.png?raw=true) | ![Chinese Screenshot](https://github.com/CYR2077/MWI-AutoCombat/blob/04ae6b6d9c86aaa89393b1369ecd447a5322cc2d/img/1.png?raw=true) |
 
 ## About Script Behavior in This Plugin:
 
