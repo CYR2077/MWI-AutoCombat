@@ -1,6 +1,7 @@
 // ==UserScript==
-// @name         MWI-AutoCombat
+// @name         MWI自动战斗助手
 // @name:zh-CN   MWI自动战斗助手
+// @name:en      MWI-AutoCombat
 // @namespace    http://tampermonkey.net/
 // @version      1.2.1
 // @description  Auto-manage game queue(自动9战)
