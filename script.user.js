@@ -2,7 +2,7 @@
 // @name         MWI-AutoCombat
 // @name:zh-CN   MWI自动战斗助手
 // @namespace    http://tampermonkey.net/
-// @version      1.3.0
+// @version      1.3.1
 // @description  Auto-manage game queue(自动9战)
 // @author       XIxixi297
 // @license      CC-BY-NC-SA-4.0
@@ -501,6 +501,48 @@
             this.loadSettings();
         }
 
+        // 验证输入值是否合法
+        validateBattleCount(value) {
+            // 检查是否为空或非数字
+            if (value === '' || isNaN(value)) {
+                return false;
+            }
+            
+            const num = parseInt(value);
+            
+            // 检查是否为整数且在有效范围内
+            if (!Number.isInteger(num) || num < 1 || num > 9999999999) {
+                return false;
+            }
+            
+            // 检查是否超过10位数（字符串长度检查，排除前导零等情况）
+            const cleanValue = value.toString().replace(/^0+/, '') || '0';
+            if (cleanValue.length > 10) {
+                return false;
+            }
+            
+            return true;
+        }
+
+        // 更新开始按钮状态
+        updateStartButtonState() {
+            const startButton = this.panel.querySelector('#combat-start-button');
+            const battleCountInput = this.panel.querySelector('#combat-battle-count');
+            const inputValue = battleCountInput.value;
+            
+            const isValid = this.validateBattleCount(inputValue);
+            startButton.disabled = !isValid || this.isRunning;
+            
+            // 视觉反馈
+            if (isValid) {
+                battleCountInput.style.borderColor = 'rgba(255,255,255,0.2)';
+                battleCountInput.style.backgroundColor = 'rgba(0,0,0,0.3)';
+            } else {
+                battleCountInput.style.borderColor = '#e74c3c';
+                battleCountInput.style.backgroundColor = 'rgba(231,76,60,0.1)';
+            }
+        }
+
         createUI() {
             // 创建面板容器
             this.panel = document.createElement('div');
@@ -521,7 +563,7 @@
                     </div>
                     <div class="combat-form-group">
                         <label>${t.battleCount}</label>
-                        <input id="combat-battle-count" type="number" value="${this.battleCount}" min="1" max="9999999999" step="1">
+                        <input id="combat-battle-count" type="text" value="${this.battleCount}" maxLength="10" placeholder="1-9999999999">
                     </div>
                     <div class="combat-button-container">
                         <button id="combat-start-button">${t.startButton}</button>
@@ -661,12 +703,19 @@
                     color: white;
                     font-size: 14px;
                     box-sizing: border-box;
+                    transition: border-color 0.3s, background-color 0.3s;
                 }
 
                 #combat-task-select:focus, #combat-battle-count:focus {
                     outline: none;
                     border-color: #3498db;
                     box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+                }
+
+                /* 输入框无效状态样式 */
+                #combat-battle-count.invalid {
+                    border-color: #e74c3c !important;
+                    background-color: rgba(231,76,60,0.1) !important;
                 }
 
                 .combat-button-container {
@@ -743,15 +792,34 @@
                 StorageManager.set('selectedTask', this.selectedTaskIndex);
             });
 
-            // 战斗次数变化
-            this.panel.querySelector('#combat-battle-count').addEventListener('input', (e) => {
-                this.battleCount = parseInt(e.target.value) || 1;
-                StorageManager.set('battleCount', this.battleCount);
+            // 战斗次数变化 - 修改后的验证逻辑
+            const battleCountInput = this.panel.querySelector('#combat-battle-count');
+            battleCountInput.addEventListener('input', (e) => {
+                const inputValue = e.target.value;
+                
+                // 实时验证并更新按钮状态
+                this.updateStartButtonState();
+                
+                // 只有在输入合法时才保存到存储
+                if (this.validateBattleCount(inputValue)) {
+                    this.battleCount = parseInt(inputValue);
+                    StorageManager.set('battleCount', this.battleCount);
+                }
+            });
+
+            // 添加失焦事件，确保输入完成后进行验证
+            battleCountInput.addEventListener('blur', () => {
+                this.updateStartButtonState();
             });
 
             // 开始按钮
             this.panel.querySelector('#combat-start-button').addEventListener('click', () => {
-                this.startAuto();
+                // 双重检查：点击时再次验证
+                const inputValue = this.panel.querySelector('#combat-battle-count').value;
+                if (this.validateBattleCount(inputValue)) {
+                    this.battleCount = parseInt(inputValue);
+                    this.startAuto();
+                }
             });
 
             // 停止按钮
@@ -901,6 +969,9 @@
         loadSettings() {
             this.panel.querySelector('#combat-task-select').value = this.selectedTaskIndex;
             this.panel.querySelector('#combat-battle-count').value = this.battleCount;
+            
+            // 初始化时验证输入并更新按钮状态
+            this.updateStartButtonState();
         }
 
         toggleMinimize() {
@@ -946,8 +1017,16 @@
         startAuto() {
             if (this.isRunning) return;
 
+            // 开始前最后一次验证
+            const inputValue = this.panel.querySelector('#combat-battle-count').value;
+            if (!this.validateBattleCount(inputValue)) {
+                return;
+            }
+
             this.isRunning = true;
-            this.panel.querySelector('#combat-start-button').disabled = true;
+            
+            // 更新按钮状态
+            this.updateStartButtonState();
             this.panel.querySelector('#combat-stop-button').disabled = false;
 
             // 创建监听器
@@ -966,7 +1045,9 @@
             if (!this.isRunning) return;
 
             this.isRunning = false;
-            this.panel.querySelector('#combat-start-button').disabled = false;
+            
+            // 更新按钮状态
+            this.updateStartButtonState();  
             this.panel.querySelector('#combat-stop-button').disabled = true;
 
             if (this.monitor) {
